@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: mytracks
+      POSTGRES_USER: mytracks
+      POSTGRES_PASSWORD: mytracks
+    ports:
+      - "5432:5432"
