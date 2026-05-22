@@ -4,6 +4,7 @@ description: Creates a markdown task list and enforces test and format checks
 ---
 Generate a markdown task list based on the current objective.
 Save the file in the `tasks/` directory.
+Include the request details after the header in the markdown file.
 
 Use the following dynamic data for the filename and header:
 Timestamp: !`date +"%Y-%m-%d_%H-%M"`

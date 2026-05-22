@@ -8,43 +8,97 @@ import java.util.UUID;
 @Table(name = "tracks")
 public class Track {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(updatable = false, nullable = false)
-    private UUID id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(updatable = false, nullable = false)
+  private UUID id;
 
-    @Column(name = "user_id", nullable = false)
-    private String userId;
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
 
-    @Column(name = "track_name", nullable = false)
-    private String trackName;
+  @Column(name = "track_name", nullable = false)
+  private String trackName;
 
-    @Column(nullable = false)
-    private String source;
+  @Column(nullable = false)
+  private String source;
 
-    @Column(name = "upload_timestamp", nullable = false)
-    private Instant uploadTimestamp;
+  @Column(name = "upload_timestamp", nullable = false)
+  private Instant uploadTimestamp;
 
-    @Column(name = "raw_payload", columnDefinition = "bytea")
-    private byte[] rawPayload;
+  @Column(name = "activity_type")
+  private String activityType;
 
-    protected Track() {}
+  @Column(columnDefinition = "text")
+  private String notes;
 
-    public Track(String userId, String trackName, String source, Instant uploadTimestamp, byte[] rawPayload) {
-        this.userId = userId;
-        this.trackName = trackName;
-        this.source = source;
-        this.uploadTimestamp = uploadTimestamp;
-        this.rawPayload = rawPayload;
-    }
+  @Column(name = "raw_payload", columnDefinition = "bytea")
+  private byte[] rawPayload;
 
-    public UUID getId() { return id; }
-    public String getUserId() { return userId; }
-    public String getTrackName() { return trackName; }
-    public String getSource() { return source; }
-    public Instant getUploadTimestamp() { return uploadTimestamp; }
-    public byte[] getRawPayload() { return rawPayload; }
+  protected Track() {}
 
-    public void setTrackName(String trackName) { this.trackName = trackName; }
-    public void setRawPayload(byte[] rawPayload) { this.rawPayload = rawPayload; }
+  public Track(
+      User user,
+      String trackName,
+      String source,
+      Instant uploadTimestamp,
+      String activityType,
+      String notes,
+      byte[] rawPayload) {
+    this.user = user;
+    this.trackName = trackName;
+    this.source = source;
+    this.uploadTimestamp = uploadTimestamp;
+    this.activityType = activityType;
+    this.notes = notes;
+    this.rawPayload = rawPayload;
+  }
+
+  public UUID getId() {
+    return id;
+  }
+
+  public User getUser() {
+    return user;
+  }
+
+  public String getTrackName() {
+    return trackName;
+  }
+
+  public String getSource() {
+    return source;
+  }
+
+  public Instant getUploadTimestamp() {
+    return uploadTimestamp;
+  }
+
+  public String getActivityType() {
+    return activityType;
+  }
+
+  public String getNotes() {
+    return notes;
+  }
+
+  public byte[] getRawPayload() {
+    return rawPayload;
+  }
+
+  public void setTrackName(String trackName) {
+    this.trackName = trackName;
+  }
+
+  public void setActivityType(String activityType) {
+    this.activityType = activityType;
+  }
+
+  public void setNotes(String notes) {
+    this.notes = notes;
+  }
+
+  public void setRawPayload(byte[] rawPayload) {
+    this.rawPayload = rawPayload;
+  }
 }
