@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mytracks-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.middlewares: default-force-https@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: [ "vpsh1.andersbohn.dk" ]
+      secretName: picklist-tls
+  rules:
+    - host: vpsh1.andersbohn.dk
+      http:
+        paths:
+          - path: /mytracks
+            pathType: Prefix
+            backend:
+              service:
+                name: mytracks
+                port:
+                  number: 80
