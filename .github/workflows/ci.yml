@@ -60,6 +60,7 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/${{ env.OWNER }}/mytracks:${{ env.TAG }}
+          platforms: linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
