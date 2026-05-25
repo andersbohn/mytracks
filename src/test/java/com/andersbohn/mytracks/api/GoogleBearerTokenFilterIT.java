@@ -53,7 +53,7 @@ class GoogleBearerTokenFilterIT {
   }
 
   @Test
-  void invalidBearerToken_returns401() {
+  void invalidBearerToken_onProtectedEndpoint_returns401() {
     when(tokenVerifier.verify("bad-bearer")).thenThrow(new InvalidTokenException("bad"));
 
     var headers = new HttpHeaders();
@@ -62,6 +62,24 @@ class GoogleBearerTokenFilterIT {
         restTemplate.exchange("/api/me", HttpMethod.GET, new HttpEntity<>(headers), Void.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+  }
+
+  @Test
+  void invalidBearerToken_onPublicEndpoint_returns200Unauthenticated() {
+    when(tokenVerifier.verify("bad-bearer")).thenThrow(new InvalidTokenException("bad"));
+
+    var headers = new HttpHeaders();
+    headers.setBearerAuth("bad-bearer");
+    var response =
+        restTemplate.exchange(
+            "/api/auth/status",
+            HttpMethod.GET,
+            new HttpEntity<>(headers),
+            AuthStatusController.AuthStatusResponse.class);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().authenticated()).isFalse();
   }
 
   @Test

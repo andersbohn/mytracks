@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,6 +17,8 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 public class GoogleBearerTokenFilter extends OncePerRequestFilter {
+
+  private static final Logger log = LoggerFactory.getLogger(GoogleBearerTokenFilter.class);
 
   private final GoogleIdTokenVerifier tokenVerifier;
   private final UserAuthService userAuthService;
@@ -52,9 +56,10 @@ public class GoogleBearerTokenFilter extends OncePerRequestFilter {
           .setAuthentication(
               new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities()));
     } catch (InvalidTokenException e) {
+      // Clear context and chain — Spring Security's entry point handles 401 for protected
+      // endpoints, while public endpoints (permitAll) still respond normally.
+      log.warn("Bearer token verification failed: {}", e.getMessage());
       SecurityContextHolder.clearContext();
-      response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-      return;
     }
 
     chain.doFilter(request, response);
