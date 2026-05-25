@@ -23,16 +23,19 @@ public class SecurityConfig {
   private final AppProperties appProperties;
   private final CustomOAuth2UserService customOAuth2UserService;
   private final UserAuthService userAuthService;
+  private final GoogleIdTokenVerifier tokenVerifier;
 
   public SecurityConfig(
       UserAuthProperties authProperties,
       AppProperties appProperties,
       CustomOAuth2UserService customOAuth2UserService,
-      UserAuthService userAuthService) {
+      UserAuthService userAuthService,
+      GoogleIdTokenVerifier tokenVerifier) {
     this.authProperties = authProperties;
     this.appProperties = appProperties;
     this.customOAuth2UserService = customOAuth2UserService;
     this.userAuthService = userAuthService;
+    this.tokenVerifier = tokenVerifier;
   }
 
   @Bean
@@ -51,6 +54,8 @@ public class SecurityConfig {
     http.addFilterBefore(
             new MockAuthFilter(userAuthService, authProperties),
             UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(
+            new GoogleBearerTokenFilter(tokenVerifier, userAuthService), MockAuthFilter.class)
         .oauth2Login(
             oauth2 ->
                 oauth2
