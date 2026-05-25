@@ -19,7 +19,7 @@ public class HttpGoogleIdTokenVerifier implements GoogleIdTokenVerifier {
       var response =
           restClient
               .get()
-              .uri("/oauth2/v3/tokeninfo?id_token={token}", idToken)
+              .uri("/tokeninfo?id_token={token}", idToken)
               .retrieve()
               .body(TokenInfoResponse.class);
       if (response == null || response.sub() == null) {
