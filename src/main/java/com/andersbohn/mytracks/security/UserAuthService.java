@@ -24,8 +24,4 @@ public class UserAuthService {
                 userRepository.save(
                     new User(email, displayName, ssoProvider, ssoSubject, Instant.now())));
   }
-
-  public boolean isAllowed(String email) {
-    return authProperties.isAllowed(email);
-  }
 }

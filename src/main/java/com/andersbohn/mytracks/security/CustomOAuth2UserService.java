@@ -5,7 +5,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
@@ -25,11 +24,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     String email = oAuth2User.getAttribute("email");
     String name = oAuth2User.getAttribute("name");
     String sub = oAuth2User.getAttribute("sub");
-
-    if (!userAuthService.isAllowed(email)) {
-      throw new OAuth2AuthenticationException(
-          new OAuth2Error("access_denied"), "Not an allowed user: " + email);
-    }
 
     userAuthService.findOrRegister(email, name, "google", sub);
 
