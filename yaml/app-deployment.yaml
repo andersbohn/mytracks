@@ -48,11 +48,16 @@ spec:
                 secretKeyRef:
                   name: mytracks-secret
                   key: oauth-client-secret
-            - name: AUTH_ALLOWED_EMAILS
+            - name: APP_FRONTEND_URL
               valueFrom:
                 secretKeyRef:
                   name: mytracks-secret
-                  key: allowed-emails
+                  key: frontend-url
+            - name: APP_CORS_ALLOWED_ORIGINS
+              valueFrom:
+                secretKeyRef:
+                  name: mytracks-secret
+                  key: cors-allowed-origins
           resources:
             requests:
               cpu: "100m"
