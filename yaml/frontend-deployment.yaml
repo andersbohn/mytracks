@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mytracks-ui
+  namespace: mytracks
+spec:
+  replicas: 1
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: mytracks-ui
+  template:
+    metadata:
+      labels:
+        app: mytracks-ui
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: mytracks-ui
+          image: ghcr.io/OWNER_PLACEHOLDER/mytracks-ui:TAG_PLACEHOLDER
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "32Mi"
+            limits:
+              cpu: "100m"
+              memory: "64Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mytracks-ui
+  namespace: mytracks
+spec:
+  selector:
+    app: mytracks-ui
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80

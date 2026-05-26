@@ -16,6 +16,13 @@ spec:
     - host: vpsh1.andersbohn.dk
       http:
         paths:
+          - path: /mytracks-ui
+            pathType: Prefix
+            backend:
+              service:
+                name: mytracks-ui
+                port:
+                  number: 80
           - path: /mytracks
             pathType: Prefix
             backend:

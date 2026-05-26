@@ -34,5 +34,6 @@ class AuthStatusUnauthenticatedIT {
     assertThat(body.authenticated()).isFalse();
     assertThat(body.user()).isNull();
     assertThat(body.loginUrl()).isEqualTo(AuthStatusController.LOGIN_URL);
+    assertThat(body.googleClientId()).isNotNull();
   }
 }

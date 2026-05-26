@@ -33,5 +33,12 @@ class AuthStatusControllerIT {
     assertThat(body.user()).isNotNull();
     assertThat(body.user().email()).isEqualTo("test@example.com");
     assertThat(body.loginUrl()).isNull();
+    assertThat(body.googleClientId()).isEqualTo("test-client-id");
+  }
+
+  @Test
+  void logout_invalidatesSession() {
+    var response = restTemplate.postForEntity("/api/auth/logout", null, Void.class);
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 }

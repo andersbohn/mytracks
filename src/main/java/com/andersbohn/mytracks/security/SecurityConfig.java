@@ -44,7 +44,11 @@ public class SecurityConfig {
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers("/actuator/health/**", "/api/auth/status", "/api/auth/google")
+                auth.requestMatchers(
+                        "/actuator/health/**",
+                        "/api/auth/status",
+                        "/api/auth/google",
+                        "/api/auth/logout")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
