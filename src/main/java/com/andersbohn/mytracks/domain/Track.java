@@ -32,6 +32,9 @@ public class Track {
   @Column(columnDefinition = "text")
   private String notes;
 
+  @Column(name = "source_id")
+  private String sourceId;
+
   @Column(name = "raw_payload", columnDefinition = "bytea")
   private byte[] rawPayload;
 
@@ -41,6 +44,7 @@ public class Track {
       User user,
       String trackName,
       String source,
+      String sourceId,
       Instant uploadTimestamp,
       String activityType,
       String notes,
@@ -48,6 +52,7 @@ public class Track {
     this.user = user;
     this.trackName = trackName;
     this.source = source;
+    this.sourceId = sourceId;
     this.uploadTimestamp = uploadTimestamp;
     this.activityType = activityType;
     this.notes = notes;
@@ -68,6 +73,10 @@ public class Track {
 
   public String getSource() {
     return source;
+  }
+
+  public String getSourceId() {
+    return sourceId;
   }
 
   public Instant getUploadTimestamp() {
@@ -96,6 +105,10 @@ public class Track {
 
   public void setNotes(String notes) {
     this.notes = notes;
+  }
+
+  public void setSourceId(String sourceId) {
+    this.sourceId = sourceId;
   }
 
   public void setRawPayload(byte[] rawPayload) {

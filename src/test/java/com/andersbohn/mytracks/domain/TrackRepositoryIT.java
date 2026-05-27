@@ -19,7 +19,6 @@ class TrackRepositoryIT {
   static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
 
   @Autowired UserRepository userRepository;
-
   @Autowired TrackRepository trackRepository;
 
   @Test
@@ -30,11 +29,26 @@ class TrackRepositoryIT {
     var track =
         trackRepository.save(
             new Track(
-                user, "Morning Run", "garmin", Instant.now(), "running", "Felt great today", null));
+                user, "Morning Run", "garmin", null, Instant.now(), "running", "Felt great", null));
 
     var loaded = trackRepository.findById(track.getId()).orElseThrow();
     assertThat(loaded.getUser().getId()).isEqualTo(user.getId());
     assertThat(loaded.getActivityType()).isEqualTo("running");
-    assertThat(loaded.getNotes()).isEqualTo("Felt great today");
+    assertThat(loaded.getNotes()).isEqualTo("Felt great");
+    assertThat(loaded.getSourceId()).isNull();
+  }
+
+  @Test
+  void sourceIdRoundTrip() {
+    var user =
+        userRepository.save(
+            new User("dave@example.com", "Dave", "google", "google-sub-4", Instant.now()));
+    var track =
+        trackRepository.save(
+            new Track(
+                user, "Summit Hike", "garmin", "12345678", Instant.now(), "hiking", null, null));
+
+    var loaded = trackRepository.findById(track.getId()).orElseThrow();
+    assertThat(loaded.getSourceId()).isEqualTo("12345678");
   }
 }

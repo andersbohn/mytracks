@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import TrackList from './TrackList'
 
 type User = { id: string; email: string; displayName: string | null }
 
@@ -23,6 +24,8 @@ export default function Profile({ onLogout }: { onLogout: () => void }) {
       <h1>Welcome, {user.displayName ?? user.email}</h1>
       <p>{user.email}</p>
       <button onClick={logout}>Sign out</button>
+      <h2>Tracks</h2>
+      <TrackList />
     </div>
   )
 }
