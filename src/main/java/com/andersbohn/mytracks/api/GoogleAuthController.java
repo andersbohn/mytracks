@@ -57,7 +57,8 @@ public class GoogleAuthController {
     new HttpSessionSecurityContextRepository().saveContext(context, request, response);
 
     return ResponseEntity.ok(
-        new UserController.UserResponse(user.getId(), user.getEmail(), user.getDisplayName()));
+        new UserController.UserResponse(
+            user.getId(), user.getEmail(), user.getDisplayName(), user.getRole()));
   }
 
   @ExceptionHandler(InvalidTokenException.class)

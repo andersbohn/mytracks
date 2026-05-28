@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.andersbohn.mytracks.domain.TrackRepository;
 import com.andersbohn.mytracks.domain.User;
 import com.andersbohn.mytracks.domain.UserRepository;
+import com.andersbohn.mytracks.domain.UserRole;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,17 +49,22 @@ class TrackUploadIT {
   @BeforeEach
   void setUp() {
     trackRepository.deleteAll();
-    userRepository
-        .findByEmail("test@example.com")
-        .orElseGet(
-            () ->
-                userRepository.save(
-                    new User(
-                        "test@example.com",
-                        "Test User",
-                        "mock",
-                        "test@example.com",
-                        Instant.now())));
+    var user =
+        userRepository
+            .findByEmail("test@example.com")
+            .orElseGet(
+                () ->
+                    userRepository.save(
+                        new User(
+                            "test@example.com",
+                            "Test User",
+                            "mock",
+                            "test@example.com",
+                            Instant.now())));
+    if (user.getRole() != UserRole.USER) {
+      user.setRole(UserRole.USER);
+      userRepository.save(user);
+    }
   }
 
   @Test
@@ -87,6 +93,17 @@ class TrackUploadIT {
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody().sourceId()).isEqualTo("12345678");
+  }
+
+  @Test
+  void upload_guestUser_returns403() {
+    var user = userRepository.findByEmail("test@example.com").orElseThrow();
+    user.setRole(UserRole.GUEST);
+    userRepository.save(user);
+
+    var response = postGpx(MINIMAL_GPX, null, null);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
   }
 
   @Test

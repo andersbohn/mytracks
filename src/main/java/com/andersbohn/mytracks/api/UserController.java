@@ -1,6 +1,7 @@
 package com.andersbohn.mytracks.api;
 
 import com.andersbohn.mytracks.domain.UserRepository;
+import com.andersbohn.mytracks.domain.UserRole;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,9 +24,12 @@ public class UserController {
     String email = principal.getAttribute("email");
     return userRepository
         .findByEmail(email)
-        .map(u -> ResponseEntity.ok(new UserResponse(u.getId(), u.getEmail(), u.getDisplayName())))
+        .map(
+            u ->
+                ResponseEntity.ok(
+                    new UserResponse(u.getId(), u.getEmail(), u.getDisplayName(), u.getRole())))
         .orElse(ResponseEntity.notFound().build());
   }
 
-  public record UserResponse(UUID id, String email, String displayName) {}
+  public record UserResponse(UUID id, String email, String displayName, UserRole role) {}
 }

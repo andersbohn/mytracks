@@ -21,3 +21,4 @@ understanding of the task at hand.
 Before declaring a change done on this task plan, you must ensure:
 1. All tests run green (including integration tests).
 2. Code format is verified by running `spotlessCheck`.
+3. Task list is checked off according to the implementation progress.

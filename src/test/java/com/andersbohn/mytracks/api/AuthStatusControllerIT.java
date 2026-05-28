@@ -2,6 +2,7 @@ package com.andersbohn.mytracks.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.andersbohn.mytracks.domain.UserRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,6 +33,7 @@ class AuthStatusControllerIT {
     assertThat(body.authenticated()).isTrue();
     assertThat(body.user()).isNotNull();
     assertThat(body.user().email()).isEqualTo("test@example.com");
+    assertThat(body.user().role()).isEqualTo(UserRole.GUEST);
     assertThat(body.loginUrl()).isNull();
     assertThat(body.googleClientId()).isEqualTo("test-client-id");
   }

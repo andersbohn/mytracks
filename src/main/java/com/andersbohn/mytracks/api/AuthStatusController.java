@@ -1,6 +1,7 @@
 package com.andersbohn.mytracks.api;
 
 import com.andersbohn.mytracks.domain.UserRepository;
+import com.andersbohn.mytracks.domain.UserRole;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.UUID;
@@ -46,7 +47,7 @@ public class AuthStatusController {
                 ResponseEntity.ok(
                     new AuthStatusResponse(
                         true,
-                        new UserInfo(u.getId(), u.getEmail(), u.getDisplayName()),
+                        new UserInfo(u.getId(), u.getEmail(), u.getDisplayName(), u.getRole()),
                         null,
                         googleClientId)))
         .orElse(ResponseEntity.ok(new AuthStatusResponse(false, null, LOGIN_URL, googleClientId)));
@@ -59,7 +60,7 @@ public class AuthStatusController {
     return ResponseEntity.ok().build();
   }
 
-  public record UserInfo(UUID id, String email, String displayName) {}
+  public record UserInfo(UUID id, String email, String displayName, UserRole role) {}
 
   public record AuthStatusResponse(
       boolean authenticated, UserInfo user, String loginUrl, String googleClientId) {}

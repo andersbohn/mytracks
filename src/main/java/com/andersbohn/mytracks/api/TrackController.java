@@ -4,6 +4,7 @@ import com.andersbohn.mytracks.domain.GpxParser;
 import com.andersbohn.mytracks.domain.Track;
 import com.andersbohn.mytracks.domain.TrackRepository;
 import com.andersbohn.mytracks.domain.UserRepository;
+import com.andersbohn.mytracks.domain.UserRole;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
@@ -55,30 +56,32 @@ public class TrackController {
     if (file.isEmpty()) {
       return ResponseEntity.badRequest().build();
     }
+    String email = principal.getAttribute("email");
+    var userOpt = userRepository.findByEmail(email);
+    if (userOpt.isEmpty()) {
+      return ResponseEntity.notFound().build();
+    }
+    var user = userOpt.get();
+    if (user.getRole() == UserRole.GUEST) {
+      return ResponseEntity.status(403).build();
+    }
     byte[] gpxBytes = file.getBytes();
     var meta = GpxParser.parse(gpxBytes);
     String resolvedName =
         firstNonBlank(trackName, meta.name(), stripExtension(file.getOriginalFilename()));
     String resolvedType = firstNonBlank(activityType, meta.type());
-    String email = principal.getAttribute("email");
-    return userRepository
-        .findByEmail(email)
-        .map(
-            user -> {
-              var track =
-                  trackRepository.save(
-                      new Track(
-                          user,
-                          resolvedName,
-                          "gpx-upload",
-                          sourceId,
-                          Instant.now(),
-                          resolvedType,
-                          notes,
-                          gpxBytes));
-              return ResponseEntity.ok(TrackSummary.from(track));
-            })
-        .orElse(ResponseEntity.notFound().build());
+    var track =
+        trackRepository.save(
+            new Track(
+                user,
+                resolvedName,
+                "gpx-upload",
+                sourceId,
+                Instant.now(),
+                resolvedType,
+                notes,
+                gpxBytes));
+    return ResponseEntity.ok(TrackSummary.from(track));
   }
 
   private static String firstNonBlank(String... candidates) {

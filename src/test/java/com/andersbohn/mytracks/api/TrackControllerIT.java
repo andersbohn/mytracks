@@ -6,6 +6,7 @@ import com.andersbohn.mytracks.domain.Track;
 import com.andersbohn.mytracks.domain.TrackRepository;
 import com.andersbohn.mytracks.domain.User;
 import com.andersbohn.mytracks.domain.UserRepository;
+import com.andersbohn.mytracks.domain.UserRole;
 import java.time.Instant;
 import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +48,10 @@ class TrackControllerIT {
                             "mock",
                             "test@example.com",
                             Instant.now())));
+    if (mockUser.getRole() != UserRole.USER) {
+      mockUser.setRole(UserRole.USER);
+      mockUser = userRepository.save(mockUser);
+    }
   }
 
   @Test

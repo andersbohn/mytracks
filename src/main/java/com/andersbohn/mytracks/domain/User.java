@@ -28,6 +28,10 @@ public class User {
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
 
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private UserRole role = UserRole.GUEST;
+
   protected User() {}
 
   public User(
@@ -37,6 +41,7 @@ public class User {
     this.ssoProvider = ssoProvider;
     this.ssoSubject = ssoSubject;
     this.createdAt = createdAt;
+    this.role = UserRole.GUEST;
   }
 
   public UUID getId() {
@@ -61,5 +66,13 @@ public class User {
 
   public Instant getCreatedAt() {
     return createdAt;
+  }
+
+  public UserRole getRole() {
+    return role;
+  }
+
+  public void setRole(UserRole role) {
+    this.role = role;
   }
 }
