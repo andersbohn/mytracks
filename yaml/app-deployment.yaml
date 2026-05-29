@@ -59,6 +59,8 @@ spec:
                 secretKeyRef:
                   name: mytracks-secret
                   key: cors-allowed-origins
+            - name: MANAGEMENT_OTLP_TRACING_ENDPOINT
+              value: "http://jaeger-collector.default.svc.cluster.local:4318/v1/traces"
           resources:
             requests:
               cpu: "100m"
