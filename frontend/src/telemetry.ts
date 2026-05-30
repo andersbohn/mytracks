@@ -1,3 +1,4 @@
+import { CompositePropagator, W3CBaggagePropagator, W3CTraceContextPropagator } from '@opentelemetry/core'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load'
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch'
@@ -13,7 +14,11 @@ export function initTelemetry() {
     spanProcessors: [new BatchSpanProcessor(exporter)],
   })
 
-  provider.register()
+  provider.register({
+    propagator: new CompositePropagator({
+      propagators: [new W3CTraceContextPropagator(), new W3CBaggagePropagator()],
+    }),
+  })
 
   registerInstrumentations({
     instrumentations: [new FetchInstrumentation(), new DocumentLoadInstrumentation()],
