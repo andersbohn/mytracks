@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     proxy: {
       '/mytracks': 'http://localhost:8080',
-      '/otlp': 'http://localhost:4318',
+      '/v1/traces': 'http://localhost:4318',
     },
   },
 }))

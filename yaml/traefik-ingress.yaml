@@ -16,7 +16,7 @@ spec:
     - host: vpsh1.andersbohn.dk
       http:
         paths:
-          - path: /otlp
+          - path: /v1/traces
             pathType: Prefix
             backend:
               service:
