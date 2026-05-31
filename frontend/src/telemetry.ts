@@ -7,7 +7,7 @@ import { resourceFromAttributes } from '@opentelemetry/resources'
 import { BatchSpanProcessor, WebTracerProvider } from '@opentelemetry/sdk-trace-web'
 
 export function initTelemetry() {
-  const exporter = new OTLPTraceExporter({ url: '/v1/traces' })
+  const exporter = new OTLPTraceExporter({ url: '/mytracks/api/otlp/v1/traces' })
 
   const provider = new WebTracerProvider({
     resource: resourceFromAttributes({ 'service.name': 'mytracks-frontend' }),

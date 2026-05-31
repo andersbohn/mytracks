@@ -48,7 +48,8 @@ public class SecurityConfig {
                         "/actuator/health/**",
                         "/api/auth/status",
                         "/api/auth/google",
-                        "/api/auth/logout")
+                        "/api/auth/logout",
+                        "/api/otlp/v1/traces")
                     .permitAll()
                     .anyRequest()
                     .authenticated())
@@ -60,6 +61,7 @@ public class SecurityConfig {
             UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(
             new GoogleBearerTokenFilter(tokenVerifier, userAuthService), MockAuthFilter.class)
+        .addFilterAfter(new UserSpanFilter(), MockAuthFilter.class)
         .oauth2Login(
             oauth2 ->
                 oauth2

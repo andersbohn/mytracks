@@ -16,13 +16,6 @@ spec:
     - host: vpsh1.andersbohn.dk
       http:
         paths:
-          - path: /v1/traces
-            pathType: Prefix
-            backend:
-              service:
-                name: jaeger-otlp
-                port:
-                  number: 4318
           - path: /mytracks-ui
             pathType: Prefix
             backend:
@@ -37,16 +30,3 @@ spec:
                 name: mytracks
                 port:
                   number: 80
----
-# Bridges the mytracks ingress (mytracks namespace) to the shared jaeger in default namespace
-apiVersion: v1
-kind: Service
-metadata:
-  name: jaeger-otlp
-  namespace: mytracks
-spec:
-  type: ExternalName
-  externalName: jaeger-collector.default.svc.cluster.local
-  ports:
-    - port: 4318
-      targetPort: 4318

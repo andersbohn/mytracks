@@ -9,9 +9,14 @@ import org.springframework.http.server.observation.ServerRequestObservationConte
 public class TracingConfig {
 
   @Bean
-  ObservationPredicate noActuatorTracing() {
-    return (name, context) ->
-        !(context instanceof ServerRequestObservationContext c
-            && c.getCarrier().getRequestURI().contains("/actuator"));
+  ObservationPredicate tracingFilter() {
+    return (name, context) -> {
+      // suppress spring security filter chain child spans (filterchain before/after, authorize)
+      if (name.startsWith("spring.security")) return false;
+      // suppress actuator health check spans
+      if (context instanceof ServerRequestObservationContext c
+          && c.getCarrier().getRequestURI().contains("/actuator")) return false;
+      return true;
+    };
   }
 }
