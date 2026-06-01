@@ -1,6 +1,7 @@
 package com.andersbohn.mytracks.security;
 
 import com.andersbohn.mytracks.config.AppProperties;
+import io.micrometer.tracing.Tracer;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,18 +25,21 @@ public class SecurityConfig {
   private final CustomOAuth2UserService customOAuth2UserService;
   private final UserAuthService userAuthService;
   private final GoogleIdTokenVerifier tokenVerifier;
+  private final Tracer tracer;
 
   public SecurityConfig(
       UserAuthProperties authProperties,
       AppProperties appProperties,
       CustomOAuth2UserService customOAuth2UserService,
       UserAuthService userAuthService,
-      GoogleIdTokenVerifier tokenVerifier) {
+      GoogleIdTokenVerifier tokenVerifier,
+      Tracer tracer) {
     this.authProperties = authProperties;
     this.appProperties = appProperties;
     this.customOAuth2UserService = customOAuth2UserService;
     this.userAuthService = userAuthService;
     this.tokenVerifier = tokenVerifier;
+    this.tracer = tracer;
   }
 
   @Bean
@@ -61,7 +65,7 @@ public class SecurityConfig {
             UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(
             new GoogleBearerTokenFilter(tokenVerifier, userAuthService), MockAuthFilter.class)
-        .addFilterAfter(new UserSpanFilter(), MockAuthFilter.class)
+        .addFilterAfter(new UserSpanFilter(tracer), MockAuthFilter.class)
         .oauth2Login(
             oauth2 ->
                 oauth2
