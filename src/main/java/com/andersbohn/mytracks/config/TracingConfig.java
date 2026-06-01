@@ -13,9 +13,11 @@ public class TracingConfig {
     return (name, context) -> {
       // suppress spring security filter chain child spans (filterchain before/after, authorize)
       if (name.startsWith("spring.security")) return false;
-      // suppress actuator health check spans
-      if (context instanceof ServerRequestObservationContext c
-          && c.getCarrier().getRequestURI().contains("/actuator")) return false;
+      // suppress actuator health check and OTLP proxy spans
+      if (context instanceof ServerRequestObservationContext c) {
+        String uri = c.getCarrier().getRequestURI();
+        if (uri.contains("/actuator") || uri.contains("/api/otlp")) return false;
+      }
       return true;
     };
   }

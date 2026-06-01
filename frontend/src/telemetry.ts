@@ -1,6 +1,5 @@
 import { CompositePropagator, W3CBaggagePropagator, W3CTraceContextPropagator } from '@opentelemetry/core'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
-import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load'
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { resourceFromAttributes } from '@opentelemetry/resources'
@@ -21,7 +20,12 @@ export function initTelemetry() {
   })
 
   registerInstrumentations({
-    instrumentations: [new FetchInstrumentation(), new DocumentLoadInstrumentation()],
+    instrumentations: [
+      new FetchInstrumentation({
+        // don't trace the OTLP export calls themselves
+        ignoreUrls: [/\/api\/otlp/],
+      }),
+    ],
     tracerProvider: provider,
   })
 }
