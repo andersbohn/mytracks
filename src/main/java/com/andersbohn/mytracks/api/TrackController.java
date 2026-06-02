@@ -104,7 +104,23 @@ public class TrackController {
       String sourceId,
       String activityType,
       Instant uploadTimestamp,
-      String notes) {
+      String notes,
+      Instant startTime,
+      Integer durationSeconds,
+      Integer movingTimeSeconds,
+      Double distanceMeters,
+      Double ascentMeters,
+      Double descentMeters,
+      Integer avgHeartRate,
+      Integer maxHeartRate,
+      Double avgSpeedMs,
+      Double maxSpeedMs,
+      Integer calories,
+      Integer avgPowerWatts,
+      Integer normalizedPowerWatts,
+      Integer avgCadence,
+      String sport,
+      String subSport) {
 
     static TrackSummary from(Track t) {
       return new TrackSummary(
@@ -114,7 +130,23 @@ public class TrackController {
           t.getSourceId(),
           t.getActivityType(),
           t.getUploadTimestamp(),
-          t.getNotes());
+          t.getNotes(),
+          t.getStartTime(),
+          t.getDurationSeconds(),
+          t.getMovingTimeSeconds(),
+          t.getDistanceMeters(),
+          t.getAscentMeters(),
+          t.getDescentMeters(),
+          t.getAvgHeartRate(),
+          t.getMaxHeartRate(),
+          t.getAvgSpeedMs(),
+          t.getMaxSpeedMs(),
+          t.getCalories(),
+          t.getAvgPowerWatts(),
+          t.getNormalizedPowerWatts(),
+          t.getAvgCadence(),
+          t.getSport(),
+          t.getSubSport());
     }
   }
 }

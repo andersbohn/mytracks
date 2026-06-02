@@ -88,6 +88,11 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.garmin</groupId>
+			<artifactId>fit</artifactId>
+			<version>21.176.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>
