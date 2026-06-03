@@ -39,29 +39,6 @@ class FitParserTest {
   }
 
   @Test
-  void parse_fileIdNumber_populatesActivityId() throws Exception {
-    var encoder = new BufferEncoder(Fit.ProtocolVersion.V2_0);
-    encoder.open();
-    var fileId = new FileIdMesg();
-    fileId.setType(com.garmin.fit.File.ACTIVITY);
-    fileId.setNumber(42);
-    encoder.write(fileId);
-    encoder.write(new SessionMesg());
-    byte[] fitBytes = encoder.close();
-
-    var meta = FitParser.parse(new ByteArrayInputStream(fitBytes));
-
-    assertThat(meta.activityId()).isEqualTo("42");
-  }
-
-  @Test
-  void parse_noFileIdNumber_activityIdIsNull() throws Exception {
-    var meta = FitParser.parse(new ByteArrayInputStream(buildMinimalFit()));
-
-    assertThat(meta.activityId()).isNull();
-  }
-
-  @Test
   void parse_emptySession_returnsNullFields() throws Exception {
     byte[] fitBytes = buildEmptySessionFit();
 
@@ -69,7 +46,6 @@ class FitParserTest {
 
     assertThat(meta.durationSeconds()).isNull();
     assertThat(meta.sport()).isNull();
-    assertThat(meta.activityId()).isNull();
   }
 
   private static byte[] buildMinimalFit() throws Exception {

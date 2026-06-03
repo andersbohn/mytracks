@@ -68,7 +68,7 @@ class FitUploadControllerIT {
 
   @Test
   void put_parsesAndPersistsFitMetadata() throws Exception {
-    var response = putFit(buildFit(12345), "12345");
+    var response = putFit(buildFit(), "12345");
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     var body = response.getBody();
@@ -83,27 +83,11 @@ class FitUploadControllerIT {
   }
 
   @Test
-  void put_noEmbeddedId_usesPathParam() throws Exception {
-    var response = putFit(buildFit(null), "42");
-
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).isNotNull();
-    assertThat(response.getBody().sourceId()).isEqualTo("42");
-  }
-
-  @Test
-  void put_embeddedIdMismatch_returns409() throws Exception {
-    var response = putFit(buildFit(12345), "99999");
-
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-  }
-
-  @Test
   void put_sameActivityId_upserts() throws Exception {
-    putFit(buildFit(42), "42");
+    putFit(buildFit(), "42");
     assertThat(trackRepository.findAll()).hasSize(1);
 
-    var response = putFit(buildFit(42), "42");
+    var response = putFit(buildFit(), "42");
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(trackRepository.findAll()).hasSize(1);
@@ -115,7 +99,7 @@ class FitUploadControllerIT {
     user.setRole(UserRole.GUEST);
     userRepository.save(user);
 
-    assertThat(putFit(buildFit(null), "99").getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    assertThat(putFit(buildFit(), "99").getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
   }
 
   @Test
@@ -135,36 +119,27 @@ class FitUploadControllerIT {
   // POST tests
 
   @Test
-  void post_embeddedId_usesEmbeddedId() throws Exception {
-    var response = postFit(buildFit(12345), "ignored.fit");
+  void post_usesFilename() throws Exception {
+    var response = postFit(buildFit(), "17305694823.fit");
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(response.getBody()).isNotNull();
-    assertThat(response.getBody().sourceId()).isEqualTo("12345");
+    assertThat(response.getBody().sourceId()).isEqualTo("17305694823");
   }
 
   @Test
-  void post_noEmbeddedId_usesFilename() throws Exception {
-    var response = postFit(buildFit(null), "17305.fit");
-
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).isNotNull();
-    assertThat(response.getBody().sourceId()).isEqualTo("17305");
-  }
-
-  @Test
-  void post_noEmbeddedIdNonFitFilename_returns400() throws Exception {
-    var response = postFit(buildFit(null), "activity.gpx");
+  void post_nonFitFilename_returns400() throws Exception {
+    var response = postFit(buildFit(), "activity.gpx");
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
   }
 
   @Test
   void post_sameActivityId_upserts() throws Exception {
-    postFit(buildFit(null), "555.fit");
+    postFit(buildFit(), "555.fit");
     assertThat(trackRepository.findAll()).hasSize(1);
 
-    var response = postFit(buildFit(null), "555.fit");
+    var response = postFit(buildFit(), "555.fit");
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(trackRepository.findAll()).hasSize(1);
@@ -176,7 +151,7 @@ class FitUploadControllerIT {
     user.setRole(UserRole.GUEST);
     userRepository.save(user);
 
-    assertThat(postFit(buildFit(null), "1.fit").getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    assertThat(postFit(buildFit(), "1.fit").getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
   }
 
   @Test
@@ -244,13 +219,12 @@ class FitUploadControllerIT {
     };
   }
 
-  private static byte[] buildFit(Integer fileNumber) throws Exception {
+  private static byte[] buildFit() throws Exception {
     var encoder = new BufferEncoder(Fit.ProtocolVersion.V2_0);
     encoder.open();
 
     var fileId = new FileIdMesg();
     fileId.setType(com.garmin.fit.File.ACTIVITY);
-    if (fileNumber != null) fileId.setNumber(fileNumber);
     encoder.write(fileId);
 
     var session = new SessionMesg();

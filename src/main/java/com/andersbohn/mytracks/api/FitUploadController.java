@@ -48,10 +48,6 @@ public class FitUploadController {
 
     byte[] bytes = file.getBytes();
     var meta = FitParser.parse(new ByteArrayInputStream(bytes));
-
-    if (meta.activityId() != null && !meta.activityId().equals(activityId))
-      return ResponseEntity.status(409).build();
-
     return ResponseEntity.ok(
         TrackController.TrackSummary.from(persist(user, activityId, bytes, meta)));
   }
@@ -69,12 +65,11 @@ public class FitUploadController {
     byte[] bytes = file.getBytes();
     var meta = FitParser.parse(new ByteArrayInputStream(bytes));
 
-    String activityId = meta.activityId();
-    if (activityId == null) {
-      String filename = file.getOriginalFilename();
-      if (filename != null && filename.toLowerCase().endsWith(".fit"))
-        activityId = filename.substring(0, filename.length() - 4);
-    }
+    String filename = file.getOriginalFilename();
+    String activityId =
+        (filename != null && filename.toLowerCase().endsWith(".fit"))
+            ? filename.substring(0, filename.length() - 4)
+            : null;
     if (activityId == null || activityId.isBlank()) return ResponseEntity.badRequest().build();
 
     return ResponseEntity.ok(

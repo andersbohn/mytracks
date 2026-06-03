@@ -3,7 +3,6 @@ package com.andersbohn.mytracks.domain;
 import java.time.Instant;
 
 public record FitMetadata(
-    String activityId,
     Instant startTime,
     Integer durationSeconds,
     Integer movingTimeSeconds,
