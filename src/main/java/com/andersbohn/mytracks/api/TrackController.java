@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,14 +35,30 @@ public class TrackController {
   }
 
   @GetMapping
-  public ResponseEntity<List<TrackSummary>> list(@AuthenticationPrincipal OAuth2User principal) {
+  public ResponseEntity<TrackPage> list(
+      @AuthenticationPrincipal OAuth2User principal,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "50") int size) {
     String email = principal.getAttribute("email");
+    var pageable =
+        PageRequest.of(
+            page,
+            size,
+            Sort.by(Sort.Direction.DESC, "startTime")
+                .and(Sort.by(Sort.Direction.DESC, "uploadTimestamp")));
     return userRepository
         .findByEmail(email)
         .map(
-            user ->
-                ResponseEntity.ok(
-                    trackRepository.findByUser(user).stream().map(TrackSummary::from).toList()))
+            user -> {
+              var result = trackRepository.findByUser(user, pageable);
+              return ResponseEntity.ok(
+                  new TrackPage(
+                      result.getContent().stream().map(TrackSummary::from).toList(),
+                      result.getTotalElements(),
+                      result.getTotalPages(),
+                      result.getNumber(),
+                      result.getSize()));
+            })
         .orElse(ResponseEntity.notFound().build());
   }
 
@@ -96,6 +114,9 @@ public class TrackController {
     int dot = filename.lastIndexOf('.');
     return dot > 0 ? filename.substring(0, dot) : filename;
   }
+
+  public record TrackPage(
+      List<TrackSummary> content, long totalElements, int totalPages, int number, int size) {}
 
   public record TrackSummary(
       UUID id,

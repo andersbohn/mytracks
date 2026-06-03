@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import TrackDetail from './TrackDetail'
+import { fmtDate, fmtDist, fmtDuration, fmtAscent, fmtHR } from './format'
 
-type Track = {
+export type Track = {
   id: string
   trackName: string
   source: string
@@ -8,30 +10,107 @@ type Track = {
   activityType: string | null
   uploadTimestamp: string
   notes: string | null
+  startTime: string | null
+  durationSeconds: number | null
+  movingTimeSeconds: number | null
+  distanceMeters: number | null
+  ascentMeters: number | null
+  descentMeters: number | null
+  avgHeartRate: number | null
+  maxHeartRate: number | null
+  avgSpeedMs: number | null
+  maxSpeedMs: number | null
+  calories: number | null
+  avgPowerWatts: number | null
+  normalizedPowerWatts: number | null
+  avgCadence: number | null
+  sport: string | null
+  subSport: string | null
 }
 
+type TrackPage = {
+  content: Track[]
+  totalElements: number
+  totalPages: number
+  number: number
+  size: number
+}
+
+const PAGE_SIZE = 50
+
 export default function TrackList() {
-  const [tracks, setTracks] = useState<Track[] | null>(null)
+  const [trackPage, setTrackPage] = useState<TrackPage | null>(null)
+  const [page, setPage] = useState(0)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const topRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    fetch('/mytracks/api/tracks')
+    setTrackPage(null)
+    fetch(`/mytracks/api/tracks?page=${page}&size=${PAGE_SIZE}`)
       .then((r) => r.json())
-      .then(setTracks)
-  }, [])
+      .then(setTrackPage)
+  }, [page])
 
-  if (!tracks) return <p>Loading tracks…</p>
-  if (tracks.length === 0) return <p>No tracks yet.</p>
+  const goTo = (p: number) => {
+    setPage(p)
+    setSelectedId(null)
+    topRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  if (!trackPage) return <p>Loading tracks…</p>
+  if (trackPage.totalElements === 0) return <p>No tracks yet.</p>
+
+  const selected = trackPage.content.find((t) => t.id === selectedId) ?? null
 
   return (
-    <ul>
-      {tracks.map((t) => (
-        <li key={t.id}>
-          <strong>{t.trackName}</strong>
-          {t.activityType && <span> · {t.activityType}</span>}
-          <span> · {new Date(t.uploadTimestamp).toLocaleDateString()}</span>
-          {t.sourceId && <span> · <small>{t.source}:{t.sourceId}</small></span>}
-        </li>
-      ))}
-    </ul>
+    <div ref={topRef}>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Name</th>
+            <th>Sport</th>
+            <th>Distance</th>
+            <th>Duration</th>
+            <th>Ascent</th>
+            <th>Avg HR</th>
+            <th>Calories</th>
+          </tr>
+        </thead>
+        <tbody>
+          {trackPage.content.map((t) => (
+            <tr
+              key={t.id}
+              onClick={() => setSelectedId(t.id === selectedId ? null : t.id)}
+              style={{ cursor: 'pointer', fontWeight: t.id === selectedId ? 'bold' : undefined }}
+            >
+              <td>{fmtDate(t.startTime ?? t.uploadTimestamp)}</td>
+              <td>{t.trackName}</td>
+              <td>{t.sport ?? t.activityType ?? ''}</td>
+              <td>{fmtDist(t.distanceMeters)}</td>
+              <td>{fmtDuration(t.durationSeconds)}</td>
+              <td>{fmtAscent(t.ascentMeters)}</td>
+              <td>{fmtHR(t.avgHeartRate)}</td>
+              <td>{t.calories ?? ''}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {selected && <TrackDetail track={selected} onClose={() => setSelectedId(null)} />}
+
+      <div>
+        <button onClick={() => goTo(page - 1)} disabled={page === 0}>
+          Prev
+        </button>
+        <span>
+          {' '}
+          Page {page + 1} of {trackPage.totalPages} · {trackPage.totalElements} tracks{' '}
+        </span>
+        <button onClick={() => goTo(page + 1)} disabled={page >= trackPage.totalPages - 1}>
+          Next
+        </button>
+      </div>
+    </div>
   )
 }

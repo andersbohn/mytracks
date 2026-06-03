@@ -8,7 +8,6 @@ import com.andersbohn.mytracks.domain.User;
 import com.andersbohn.mytracks.domain.UserRepository;
 import com.andersbohn.mytracks.domain.UserRole;
 import java.time.Instant;
-import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,25 +54,29 @@ class TrackControllerIT {
   }
 
   @Test
-  void noTracks_returnsEmptyList() {
-    var response = restTemplate.getForEntity("/api/tracks", TrackController.TrackSummary[].class);
+  void noTracks_returnsEmptyPage() {
+    var response = restTemplate.getForEntity("/api/tracks", TrackController.TrackPage.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).isEmpty();
+    var body = response.getBody();
+    assertThat(body).isNotNull();
+    assertThat(body.content()).isEmpty();
+    assertThat(body.totalElements()).isEqualTo(0);
   }
 
   @Test
-  void withTracks_returnsSummaries() {
+  void withTracks_returnsSummariesInPage() {
     trackRepository.save(
         new Track(
             mockUser, "Evening Ride", "garmin", "99887766", Instant.now(), "cycling", null, null));
 
-    var response = restTemplate.getForEntity("/api/tracks", TrackController.TrackSummary[].class);
+    var response = restTemplate.getForEntity("/api/tracks", TrackController.TrackPage.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    var tracks = response.getBody();
-    assertThat(tracks).isNotNull();
-    assertThat(Arrays.stream(tracks))
+    var body = response.getBody();
+    assertThat(body).isNotNull();
+    assertThat(body.totalElements()).isEqualTo(1);
+    assertThat(body.content())
         .anyMatch(
             t ->
                 "Evening Ride".equals(t.trackName())
@@ -86,10 +89,29 @@ class TrackControllerIT {
     trackRepository.save(
         new Track(mockUser, "Morning Run", "garmin", null, Instant.now(), "running", null, null));
 
-    var response = restTemplate.getForEntity("/api/tracks", TrackController.TrackSummary[].class);
+    var response = restTemplate.getForEntity("/api/tracks", TrackController.TrackPage.class);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(Arrays.stream(response.getBody()))
+    assertThat(response.getBody().content())
         .anyMatch(t -> "Morning Run".equals(t.trackName()) && t.sourceId() == null);
+  }
+
+  @Test
+  void paging_returnsCorrectPage() {
+    for (int i = 0; i < 25; i++) {
+      trackRepository.save(
+          new Track(mockUser, "Track " + i, "garmin", null, Instant.now(), null, null, null));
+    }
+
+    var response =
+        restTemplate.getForEntity("/api/tracks?page=1&size=10", TrackController.TrackPage.class);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    var body = response.getBody();
+    assertThat(body).isNotNull();
+    assertThat(body.content()).hasSize(10);
+    assertThat(body.totalElements()).isEqualTo(25);
+    assertThat(body.totalPages()).isEqualTo(3);
+    assertThat(body.number()).isEqualTo(1);
   }
 }
