@@ -75,6 +75,7 @@ export default function TrackList() {
             <th>Ascent</th>
             <th>Avg HR</th>
             <th>Calories</th>
+            <th>Activity</th>
           </tr>
         </thead>
         <tbody>
@@ -92,6 +93,19 @@ export default function TrackList() {
               <td>{fmtAscent(t.ascentMeters)}</td>
               <td>{fmtHR(t.avgHeartRate)}</td>
               <td>{t.calories ?? ''}</td>
+              <td onClick={(e) => e.stopPropagation()}>
+                {t.sourceId && t.source === 'fit-upload' ? (
+                  <a
+                    href={`https://connect.garmin.com/app/activity/${t.sourceId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {t.sourceId}
+                  </a>
+                ) : (
+                  t.sourceId ?? ''
+                )}
+              </td>
             </tr>
           ))}
         </tbody>

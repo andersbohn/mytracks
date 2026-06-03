@@ -35,7 +35,24 @@ export default function TrackDetail({ track, onClose }: { track: Track; onClose:
           <Row label="Norm power" value={fmtPower(track.normalizedPowerWatts)} />
           <Row label="Avg cadence" value={track.avgCadence != null ? track.avgCadence + ' rpm' : ''} />
           <Row label="Source" value={track.source} />
-          <Row label="Source ID" value={track.sourceId} />
+          {track.sourceId && (
+            <tr>
+              <td>Activity ID</td>
+              <td>
+                {track.source === 'fit-upload' ? (
+                  <a
+                    href={`https://connect.garmin.com/app/activity/${track.sourceId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {track.sourceId}
+                  </a>
+                ) : (
+                  track.sourceId
+                )}
+              </td>
+            </tr>
+          )}
           <Row label="Uploaded" value={fmtDate(track.uploadTimestamp)} />
           <Row label="Notes" value={track.notes} />
         </tbody>
