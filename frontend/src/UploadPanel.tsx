@@ -86,14 +86,13 @@ function GpxUpload({ onUploaded }: { onUploaded: () => void }) {
 
 function FitUpload({ onUploaded }: { onUploaded: () => void }) {
   const fileRef = useRef<HTMLInputElement>(null)
-  const [activityId, setActivityId] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [error, setError] = useState<string | null>(null)
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
     const file = fileRef.current?.files?.[0]
-    if (!file || !activityId.trim()) return
+    if (!file) return
 
     const body = new FormData()
     body.append('file', file)
@@ -101,13 +100,9 @@ function FitUpload({ onUploaded }: { onUploaded: () => void }) {
     setStatus('loading')
     setError(null)
 
-    const res = await fetch(`/mytracks/api/tracks/fit/${encodeURIComponent(activityId.trim())}`, {
-      method: 'PUT',
-      body,
-    })
+    const res = await fetch('/mytracks/api/tracks/fit', { method: 'POST', body })
     if (res.ok) {
       setStatus('idle')
-      setActivityId('')
       if (fileRef.current) fileRef.current.value = ''
       onUploaded()
     } else {
@@ -122,16 +117,7 @@ function FitUpload({ onUploaded }: { onUploaded: () => void }) {
       <div>
         <input ref={fileRef} type="file" accept=".fit" required />
       </div>
-      <div>
-        <input
-          type="text"
-          placeholder="Garmin activity ID"
-          value={activityId}
-          onChange={(e) => setActivityId(e.target.value)}
-          required
-        />
-      </div>
-      <button type="submit" disabled={status === 'loading' || !activityId.trim()}>
+      <button type="submit" disabled={status === 'loading'}>
         {status === 'loading' ? 'Uploading…' : 'Upload'}
       </button>
       {error && <p>{error}</p>}

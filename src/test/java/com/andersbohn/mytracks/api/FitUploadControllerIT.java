@@ -64,14 +64,16 @@ class FitUploadControllerIT {
     }
   }
 
+  // PUT tests
+
   @Test
-  void upload_parsesAndPersistsFitMetadata() throws Exception {
-    var response = putFit(buildFit(), "98765");
+  void put_parsesAndPersistsFitMetadata() throws Exception {
+    var response = putFit(buildFit(12345), "12345");
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     var body = response.getBody();
     assertThat(body).isNotNull();
-    assertThat(body.sourceId()).isEqualTo("98765");
+    assertThat(body.sourceId()).isEqualTo("12345");
     assertThat(body.source()).isEqualTo("fit-upload");
     assertThat(body.sport()).isEqualTo("CYCLING");
     assertThat(body.distanceMeters()).isEqualTo(15000.0);
@@ -81,39 +83,45 @@ class FitUploadControllerIT {
   }
 
   @Test
-  void upload_sameActivityId_upserts() throws Exception {
-    putFit(buildFit(), "42");
+  void put_noEmbeddedId_usesPathParam() throws Exception {
+    var response = putFit(buildFit(null), "42");
 
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().sourceId()).isEqualTo("42");
+  }
+
+  @Test
+  void put_embeddedIdMismatch_returns409() throws Exception {
+    var response = putFit(buildFit(12345), "99999");
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+  }
+
+  @Test
+  void put_sameActivityId_upserts() throws Exception {
+    putFit(buildFit(42), "42");
     assertThat(trackRepository.findAll()).hasSize(1);
 
-    var response = putFit(buildFit(), "42");
+    var response = putFit(buildFit(42), "42");
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     assertThat(trackRepository.findAll()).hasSize(1);
   }
 
   @Test
-  void upload_guestUser_returns403() throws Exception {
+  void put_guestUser_returns403() throws Exception {
     var user = userRepository.findByEmail("test@example.com").orElseThrow();
     user.setRole(UserRole.GUEST);
     userRepository.save(user);
 
-    var response = putFit(buildFit(), "99");
-
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    assertThat(putFit(buildFit(null), "99").getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
   }
 
   @Test
-  void upload_emptyFile_returns400() {
+  void put_emptyFile_returns400() {
     var body = new LinkedMultiValueMap<String, Object>();
-    body.add(
-        "file",
-        new ByteArrayResource(new byte[0]) {
-          @Override
-          public String getFilename() {
-            return "empty.fit";
-          }
-        });
+    body.add("file", emptyFitResource("empty.fit"));
     var headers = new HttpHeaders();
     headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
@@ -123,6 +131,69 @@ class FitUploadControllerIT {
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
   }
+
+  // POST tests
+
+  @Test
+  void post_embeddedId_usesEmbeddedId() throws Exception {
+    var response = postFit(buildFit(12345), "ignored.fit");
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().sourceId()).isEqualTo("12345");
+  }
+
+  @Test
+  void post_noEmbeddedId_usesFilename() throws Exception {
+    var response = postFit(buildFit(null), "17305.fit");
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().sourceId()).isEqualTo("17305");
+  }
+
+  @Test
+  void post_noEmbeddedIdNonFitFilename_returns400() throws Exception {
+    var response = postFit(buildFit(null), "activity.gpx");
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  void post_sameActivityId_upserts() throws Exception {
+    postFit(buildFit(null), "555.fit");
+    assertThat(trackRepository.findAll()).hasSize(1);
+
+    var response = postFit(buildFit(null), "555.fit");
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(trackRepository.findAll()).hasSize(1);
+  }
+
+  @Test
+  void post_guestUser_returns403() throws Exception {
+    var user = userRepository.findByEmail("test@example.com").orElseThrow();
+    user.setRole(UserRole.GUEST);
+    userRepository.save(user);
+
+    assertThat(postFit(buildFit(null), "1.fit").getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+  }
+
+  @Test
+  void post_emptyFile_returns400() {
+    var body = new LinkedMultiValueMap<String, Object>();
+    body.add("file", emptyFitResource("empty.fit"));
+    var headers = new HttpHeaders();
+    headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+    var response =
+        restTemplate.exchange(
+            "/api/tracks/fit", HttpMethod.POST, new HttpEntity<>(body, headers), Void.class);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  // Helpers
 
   private org.springframework.http.ResponseEntity<TrackController.TrackSummary> putFit(
       byte[] fitBytes, String activityId) {
@@ -144,12 +215,42 @@ class FitUploadControllerIT {
         TrackController.TrackSummary.class);
   }
 
-  private static byte[] buildFit() throws Exception {
+  private org.springframework.http.ResponseEntity<TrackController.TrackSummary> postFit(
+      byte[] fitBytes, String filename) {
+    var body = new LinkedMultiValueMap<String, Object>();
+    body.add(
+        "file",
+        new ByteArrayResource(fitBytes) {
+          @Override
+          public String getFilename() {
+            return filename;
+          }
+        });
+    var headers = new HttpHeaders();
+    headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+    return restTemplate.exchange(
+        "/api/tracks/fit",
+        HttpMethod.POST,
+        new HttpEntity<>(body, headers),
+        TrackController.TrackSummary.class);
+  }
+
+  private static ByteArrayResource emptyFitResource(String filename) {
+    return new ByteArrayResource(new byte[0]) {
+      @Override
+      public String getFilename() {
+        return filename;
+      }
+    };
+  }
+
+  private static byte[] buildFit(Integer fileNumber) throws Exception {
     var encoder = new BufferEncoder(Fit.ProtocolVersion.V2_0);
     encoder.open();
 
     var fileId = new FileIdMesg();
     fileId.setType(com.garmin.fit.File.ACTIVITY);
+    if (fileNumber != null) fileId.setNumber(fileNumber);
     encoder.write(fileId);
 
     var session = new SessionMesg();

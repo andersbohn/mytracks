@@ -1,6 +1,8 @@
 package com.andersbohn.mytracks.domain;
 
 import com.garmin.fit.Decode;
+import com.garmin.fit.FileIdMesg;
+import com.garmin.fit.FileIdMesgListener;
 import com.garmin.fit.MesgBroadcaster;
 import com.garmin.fit.SessionMesg;
 import com.garmin.fit.SessionMesgListener;
@@ -14,19 +16,27 @@ public class FitParser {
     var listener = new Listener();
     var broadcaster = new MesgBroadcaster();
     broadcaster.addListener((SessionMesgListener) listener);
+    broadcaster.addListener((FileIdMesgListener) listener);
     var decode = new Decode();
     decode.read(is, broadcaster, broadcaster);
     return listener.build();
   }
 
-  private static class Listener implements SessionMesgListener {
+  private static class Listener implements SessionMesgListener, FileIdMesgListener {
+    private String activityId;
     private FitMetadata result;
+
+    @Override
+    public void onMesg(FileIdMesg m) {
+      if (m.getNumber() != null) activityId = Integer.toUnsignedString(m.getNumber());
+    }
 
     @Override
     public void onMesg(SessionMesg m) {
       Instant startTime = m.getStartTime() != null ? m.getStartTime().getDate().toInstant() : null;
       result =
           new FitMetadata(
+              activityId,
               startTime,
               floatToInt(m.getTotalElapsedTime()),
               floatToInt(m.getTotalTimerTime()),
@@ -49,8 +59,23 @@ public class FitParser {
       return result != null
           ? result
           : new FitMetadata(
-              null, null, null, null, null, null, null, null, null, null, null, null, null, null,
-              null, null);
+              activityId,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null,
+              null);
     }
   }
 
